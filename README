@@ -1,4 +1,6 @@
-Ubuntu & Anjuta & GTKで作った
+
+
+Anjuta & GTKで作成した。
 
 ビルド・実行手順
 
@@ -9,7 +11,7 @@ git clone https://github.com/bibindon/lifegameOnGTK.git
 
 2. autoreconf -iを実行
 
-3. AnjutaでImport
+3. AnjutaでImport。もしくはlifegame.anjutaを開く。
 
 4. ビルド
 

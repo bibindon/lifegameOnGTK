@@ -20,7 +20,7 @@
 
 #include <glib/gi18n.h>
 
-
+bool lifeXY[100][100];
 
 /* For testing propose use the local (not installed) ui file */
 /* #define UI_FILE PACKAGE_DATA_DIR"/ui/lifegame.ui" */
@@ -81,6 +81,14 @@ lifegame_new_window (GApplication *app,
 	}
 
 	gtk_widget_show_all (GTK_WIDGET (window));
+
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			lifeXY[i][j] = false;
+		}
+	}
 }
 
 
@@ -137,72 +145,210 @@ lifegame_new (void)
 
 void btnStart_click_cb(GtkButton *button, gpointer user_data)
 {
-	int i;
-	i++;
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			int rnd = rand() % 100;
+			if (rnd < 50)
+			{
+				lifeXY[i][j] = true;
+			}
+			else
+			{
+				lifeXY[i][j] = false;
+			}
+		}
+	}
 }
 
 void btnReset_click_cb(GtkButton *button, gpointer user_data)
 {
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			lifeXY[i][j] = false;
+		}
+	}
+}
+
+void drawRectangle(cairo_t *cr, int x, int y)
+{
+	cairo_set_source_rgb (cr, 0, 1, 0);
+	cairo_rectangle (cr, x * 5, y * 5, 5, 5);
+	cairo_fill(cr);
+}
+
+GtkWidget* drawingArea = NULL;
+
+// Not called. i dont know why.
+void on_test_show(GtkWidget *widget, gpointer user_data)
+{
+	if (drawingArea == NULL)
+	{
+		drawingArea = widget;
+
+		g_timeout_add(100, on_timeout, drawingArea);
+	}
+}
+
+void updateLifeCycle()
+{
+	bool workXY[100][100];
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			workXY[i][j] = lifeXY[i][j];
+		}
+	}
+	
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			int aliveCount = 0;
+
+			// UP
+			if (j >= 1)
+			{
+				if (i >= 1)
+				{
+					if (workXY[i-1][j-1])
+					{
+						++aliveCount;
+					}
+				}
+				
+				if (workXY[i][j-1])
+				{
+					++aliveCount;
+				}
+
+				if (i <= 98)
+				{
+					if (workXY[i+1][j-1])
+					{
+						++aliveCount;
+					}
+				}
+			}
+
+
+			// MIDDLE
+			
+			if (i >= 1)
+			{
+				if (workXY[i-1][j])
+				{
+					++aliveCount;
+				}
+			}
+			
+			if (i <= 98)
+			{
+				if (workXY[i+1][j])
+				{
+					++aliveCount;
+				}
+			}
+
+			// LOW
+			if (j <= 98)
+			{
+				if (i >= 1)
+				{
+					if (workXY[i-1][j+1])
+					{
+						++aliveCount;
+					}
+				}
+
+				if (workXY[i][j+1])
+				{
+					++aliveCount;
+				}
+
+				if (i <= 98)
+				{
+					if (workXY[i+1][j+1])
+					{
+						++aliveCount;
+					}
+				}
+			}
+
+			// 誕生...死んでいるセルに隣接する生きたセルがちょうど3つあれば、次の世代が誕生する。
+			if (!workXY[i][j])
+			{
+				if (aliveCount == 3)
+				{
+					lifeXY[i][j] = true;
+				}
+				else
+				{
+					lifeXY[i][j] = false;
+				}
+			}
+			else if (workXY[i][j])
+			{
+				// 生存...生きているセルに隣接する生きたセルが2つか3つならば、次の世代でも生存する。
+				if (aliveCount == 2 || aliveCount == 3)
+				{
+					lifeXY[i][j] = true;
+				}
+				// 過疎...生きているセルに隣接する生きたセルが1つ以下ならば、過疎により死滅する。
+				else if (aliveCount == 0 || aliveCount == 1)
+				{
+					lifeXY[i][j] = false;
+				}
+				// 過密...生きているセルに隣接する生きたセルが4つ以上ならば、過密により死滅する。
+				else if (aliveCount >= 4)
+				{
+					lifeXY[i][j] = false;
+				}
+			}
+		}
+	}
 }
 
 gboolean on_test_draw(GtkWidget *widget, cairo_t *cr)
 {
+	if (drawingArea == NULL)
+	{
+		drawingArea = widget;
+		g_timeout_add(17, on_timeout, drawingArea);
+	}
+	else
+	{
+		updateLifeCycle();
+	}
+	
+	// draw background
+	cairo_set_source_rgb (cr, 0, 0, 0);
+	cairo_rectangle (cr, 0, 0, 500, 500);
+	cairo_fill(cr);
+	
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int j = 0; j < 100; ++j)
+		{
+			if (lifeXY[i][j])
+			{
+				drawRectangle (cr, i, j);
+			}
+		}
+	}
+	return FALSE;
+}
 
-    GdkRGBA color;
-    gdouble dashes[]    =   {50.0, 10.0, 10.0, 10.0};
-    guchar  num         =   sizeof(dashes) / sizeof(dashes[0]);
-    
-    cairo_move_to   (cr,  20,  20   );
-    cairo_line_to   (cr, 280,  20   );
-    cairo_stroke    (cr);
-    
-    cairo_move_to   (cr,  20,  50   );
-    cairo_line_to   (cr, 280,  50   );
-    gdk_rgba_parse  (&color, "#f00" );
-    gdk_cairo_set_source_rgba
-                    (cr,    &color  );
-    cairo_set_dash  (cr, dashes, num, 0.0   );
-    cairo_set_line_width
-                    (cr,        1.0 );
-    cairo_stroke    (cr);
-    
-    cairo_move_to   (cr,  20,  80   );
-    cairo_line_to   (cr, 280,  80   );
-    cairo_set_dash  (cr, dashes, num, 25.0  );
-    gdk_rgba_parse  (&color, "#0f0" );
-    gdk_cairo_set_source_rgba
-                    (cr,    &color  );
-    cairo_stroke    (cr);
-    
-    cairo_move_to   (cr,  30, 110   );
-    cairo_line_to   (cr, 270, 110   );
-    cairo_set_dash  (cr, dashes, 0, 25.0    );
-    gdk_rgba_parse  (&color, "#00f" );
-    gdk_cairo_set_source_rgba
-                    (cr,    &color  );
-    cairo_set_line_cap
-                    (cr, CAIRO_LINE_CAP_BUTT    );
-    cairo_set_line_width
-                    (cr,    20.0    );
-    cairo_stroke    (cr);
-    
-    cairo_move_to   (cr,  30, 140   );
-    cairo_line_to   (cr, 270, 140   );
-    gdk_rgba_parse  (&color, "#0ff" );
-    gdk_cairo_set_source_rgba
-                    (cr,    &color  );
-    cairo_set_line_cap
-                    (cr, CAIRO_LINE_CAP_ROUND   );
-    cairo_stroke    (cr);
-    
-    cairo_move_to   (cr,  30, 170   );
-    cairo_line_to   (cr, 270, 170   );
-    gdk_rgba_parse  (&color, "#f0f" );
-    gdk_cairo_set_source_rgba
-                    (cr,    &color  );
-    cairo_set_line_cap
-                    (cr, CAIRO_LINE_CAP_SQUARE  );
-    cairo_stroke    (cr);
+gboolean on_timeout(gpointer user_data)
+{
+    // DrawingAreaを取得
+    GtkWidget *drawing_area = GTK_WIDGET(user_data);
+    gtk_widget_queue_draw(drawing_area); // DrawingAreaを再描画する
+    return TRUE;
 }
 
 

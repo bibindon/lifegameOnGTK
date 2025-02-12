@@ -21,6 +21,7 @@
 #define _LIFEGAME_
 
 #include <gtk/gtk.h>
+#include <stdbool.h>
 
 G_BEGIN_DECLS
 
@@ -51,8 +52,12 @@ struct _Lifegame
 GType lifegame_get_type (void) G_GNUC_CONST;
 Lifegame *lifegame_new (void);
 
+extern bool lifeXY[100][100];
+
 /* Callbacks */
 
+gboolean on_timeout(gpointer user_data);
+	
 G_END_DECLS
 
 #endif /* _APPLICATION_H_ */

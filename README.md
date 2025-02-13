@@ -6,7 +6,7 @@ Anjuta & GTKで作成した。
 
 ビルド・実行手順
 
-0. UbuntuにAnjuta, libgtk-3-devをインストール
+0. UbuntuにAnjuta, libgtk-3-dev, libtool-binをインストール
 
 1. git cloneでダウンロード
 ```

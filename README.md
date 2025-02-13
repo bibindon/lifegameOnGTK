@@ -6,17 +6,15 @@ Anjuta & GTKで作成した。
 
 ビルド・実行手順
 
-0. UbuntuにAnjuta, lib-gtk3-devをインストール
+0. UbuntuにAnjuta, libgtk-3-devをインストール
 
 1. git cloneでダウンロード
 ```
 git clone https://github.com/bibindon/lifegameOnGTK.git
 ```
 
-3. autoreconf -iを実行
+2. lifegame.anjutaをダブルクリック。（Anjutaが起動する）
 
-4. AnjutaでImport。もしくはlifegame.anjutaを開く。
+3. ビルド
 
-5. ビルド
-
-6. 実行
+4. 実行
